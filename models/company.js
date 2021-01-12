@@ -47,6 +47,8 @@ class Company {
   /** Find all companies.
    *
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
+   * Can filter by name, minEmployees, and max Employees
+   * to filter, just pass in an object with keys for the above values
    * */
 
   static async findAll(filterObj) {
@@ -123,6 +125,12 @@ class Company {
     const company = companyRes.rows[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
+
+    const jobRes = await db.query(
+            `SELECT id, title, salary, equity, company_handle AS "companyHandle"
+            FROM jobs WHERE company_handle = $1`, [handle]
+    )
+    company.jobs = jobRes.rows
 
     return company;
   }
