@@ -10,6 +10,7 @@ const {
 } = require("../expressError");
 
 const { BCRYPT_WORK_FACTOR } = require("../config.js");
+const Job = require('./job')
 
 /** Related functions for users. */
 
@@ -103,13 +104,12 @@ class User {
 
   static async findAll() {
     const result = await db.query(
-          `SELECT username,
-                  first_name AS "firstName",
-                  last_name AS "lastName",
-                  email,
-                  is_admin AS "isAdmin"
-           FROM users
-           ORDER BY username`,
+          `SELECT u.username, u.first_name AS "firstName", u.last_name AS "lastName", u.email, u.is_admin AS "isAdmin", json_agg(a.job_id) AS "jobId" 
+          FROM users AS u 
+          JOIN applications AS a 
+          ON u.username = a.username 
+          GROUP BY u.username 
+          ORDER BY username`,
     );
 
     return result.rows;
@@ -203,6 +203,21 @@ class User {
     const user = result.rows[0];
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
+  }
+
+  static async apply(username, job_id){
+    const checkForUser = User.get(username)
+    if(!checkForUser) throw new BadRequestError(`${username} does not exist`)
+    const checkForJob = Job.getOne(job_id)
+    if(!checkForJob) throw new BadRequestError(`${job_id} does not exist for jobs`)
+    const duplicateCheck = await db.query(`SELECT * FROM applications WHERE username = $1 AND job_id = $2`, [username,job_id])
+    if(duplicateCheck.rows[0]) throw new BadRequestError(`This user has already applied for this position`)
+
+    const results = await db.query(`INSERT INTO applications (username, job_id)
+                                    VALUES ($1, $2)
+                                    RETURNING username, job_id`, [username, job_id])
+    if(!results.rows[0]) throw new BadRequestError(`Something seems to have gone wrong`)
+    return results.rows[0].job_id
   }
 }
 

@@ -51,7 +51,7 @@ router.post("/", ensureAdmin, async function (req, res, next) {
  * Authorization required: login
  **/
 
-router.get("/", ensureAdmin, async function (req, res, next) {
+router.get("/",  async function (req, res, next) {
   try {
     const users = await User.findAll();
     return res.json({ users });
@@ -117,6 +117,16 @@ router.delete("/:username", ensureCorrectUserOrAdmin, async function (req, res, 
     return next(err);
   }
 });
+
+router.post("/:username/jobs/:id", async (req, res, next) => {
+  try {
+    const {username, id} = req.params;
+    const result = await User.apply(username, id)
+    return res.status(201).json({applied: result})
+  } catch(e){
+    return next(e)
+  }
+})
 
 
 module.exports = router;
