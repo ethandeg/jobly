@@ -51,7 +51,7 @@ router.post("/", ensureAdmin, async function (req, res, next) {
  * Authorization required: login
  **/
 
-router.get("/",  async function (req, res, next) {
+router.get("/", async function (req, res, next) {
   try {
     const users = await User.findAll();
     return res.json({ users });
@@ -93,7 +93,7 @@ router.patch("/:username", ensureCorrectUserOrAdmin, async function (req, res, n
     const validator = jsonschema.validate(req.body, userUpdateSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
-      throw new BadRequestError(errs);
+      throw new NotFoundError(errs);
     }
 
     const user = await User.update(req.params.username, req.body);
@@ -120,10 +120,10 @@ router.delete("/:username", ensureCorrectUserOrAdmin, async function (req, res, 
 
 router.post("/:username/jobs/:id", async (req, res, next) => {
   try {
-    const {username, id} = req.params;
+    const { username, id } = req.params;
     const result = await User.apply(username, id)
-    return res.status(201).json({applied: result})
-  } catch(e){
+    return res.status(201).json({ applied: result })
+  } catch (e) {
     return next(e)
   }
 })
