@@ -18,26 +18,26 @@ class Company {
 
   static async create({ handle, name, description, numEmployees, logoUrl }) {
     const duplicateCheck = await db.query(
-          `SELECT handle
+      `SELECT handle
            FROM companies
            WHERE handle = $1`,
-        [handle]);
+      [handle]);
 
     if (duplicateCheck.rows[0])
       throw new BadRequestError(`Duplicate company: ${handle}`);
 
     const result = await db.query(
-          `INSERT INTO companies
+      `INSERT INTO companies
            (handle, name, description, num_employees, logo_url)
            VALUES ($1, $2, $3, $4, $5)
            RETURNING handle, name, description, num_employees AS "numEmployees", logo_url AS "logoUrl"`,
-        [
-          handle,
-          name,
-          description,
-          numEmployees,
-          logoUrl,
-        ],
+      [
+        handle,
+        name,
+        description,
+        numEmployees,
+        logoUrl,
+      ],
     );
     const company = result.rows[0];
 
@@ -53,15 +53,11 @@ class Company {
 
   static async findAll(filterObj) {
     //Check to see if there is any invalid data passed through to the api
-    const keys = Object.keys(filterObj)
-    const validKeys = ["name", "maxEmployees", "minEmployees"]
-    const errors = keys.filter(k => validKeys.indexOf(k) === -1)
-    //if there are any errors, throw an error listing out the invalid keys
-    if(errors.length){
-      throw new BadRequestError(`Invalid keys in request: ${errors}`)
-    }
+
+
+
     //if there is no data passed in the filter object or if there is no filter object get data on all companies
-    if(!filterObj || keys.length){
+    if (!filterObj) {
       const companiesRes = await db.query(
         `SELECT handle,
                 name,
@@ -73,11 +69,18 @@ class Company {
       return companiesRes.rows;
     }
     //filter by name, minemployees and max employees
-    let name = filterObj.name ? filterObj.name: ''
-    let minEmployees = filterObj.minEmployees ? filterObj.minEmployees: 0;
-    let maxEmployees = filterObj.maxEmployees ? filterObj.maxEmployees: 90000000
-    if(filterObj.minEmployees || filterObj.maxEmployees){
-    const companiesRes = await db.query(`SELECT handle,
+    const keys = Object.keys(filterObj)
+    const validKeys = ["name", "maxEmployees", "minEmployees"]
+    const errors = keys.filter(k => validKeys.indexOf(k) === -1)
+    //if there are any errors, throw an error listing out the invalid keys
+    if (errors.length) {
+      throw new BadRequestError(`Invalid keys in request: ${errors}`)
+    }
+    let name = filterObj.name ? filterObj.name : ''
+    let minEmployees = filterObj.minEmployees ? filterObj.minEmployees : 0;
+    let maxEmployees = filterObj.maxEmployees ? filterObj.maxEmployees : 90000000
+    if (filterObj.minEmployees || filterObj.maxEmployees) {
+      const companiesRes = await db.query(`SELECT handle,
                                                 name,
                                                 description,
                                                 num_employees AS "numEmployees",
@@ -87,13 +90,14 @@ class Company {
                                                 AND num_employees < $2
                                                 AND name ILIKE $3
                                                 ORDER BY name`, [minEmployees, maxEmployees, `%${name}%`])
-    return companiesRes.rows
+      return companiesRes.rows
     } else {
       //if not filtering by employees then don't include it in the response
       const companiesRes = await db.query(`SELECT handle,
                                                   name,
                                                   description,
-                                                  logo_url AS "logoUrl"
+                                                  logo_url AS "logoUrl",
+                                                  num_employees AS "numEmployees"
                                                   FROM companies
                                                   WHERE name 
                                                   ILIKE $1
@@ -113,21 +117,21 @@ class Company {
 
   static async get(handle) {
     const companyRes = await db.query(
-          `SELECT handle,
+      `SELECT handle,
                   name,
                   description,
                   num_employees AS "numEmployees",
                   logo_url AS "logoUrl"
            FROM companies
            WHERE handle = $1`,
-        [handle]);
+      [handle]);
 
     const company = companyRes.rows[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
 
     const jobRes = await db.query(
-            `SELECT id, title, salary, equity, company_handle AS "companyHandle"
+      `SELECT id, title, salary, equity, company_handle AS "companyHandle"
             FROM jobs WHERE company_handle = $1`, [handle]
     )
     company.jobs = jobRes.rows
@@ -149,11 +153,11 @@ class Company {
 
   static async update(handle, data) {
     const { setCols, values } = sqlForPartialUpdate(
-        data,
-        {
-          numEmployees: "num_employees",
-          logoUrl: "logo_url",
-        });
+      data,
+      {
+        numEmployees: "num_employees",
+        logoUrl: "logo_url",
+      });
     const handleVarIdx = "$" + (values.length + 1);
 
     const querySql = `UPDATE companies 
@@ -179,11 +183,11 @@ class Company {
 
   static async remove(handle) {
     const result = await db.query(
-          `DELETE
+      `DELETE
            FROM companies
            WHERE handle = $1
            RETURNING handle`,
-        [handle]);
+      [handle]);
     const company = result.rows[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);

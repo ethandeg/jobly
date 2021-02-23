@@ -104,12 +104,9 @@ class User {
 
   static async findAll() {
     const result = await db.query(
-      `SELECT u.username, u.first_name AS "firstName", u.last_name AS "lastName", u.email, u.is_admin AS "isAdmin", json_agg(a.job_id) AS "jobId" 
-          FROM users AS u 
-          JOIN applications AS a 
-          ON u.username = a.username 
-          GROUP BY u.username 
-          ORDER BY username`,
+      `SELECT username, first_name AS "firstName", last_name AS "lastName", email, is_admin AS "isAdmin"
+      FROM users
+      ORDER BY username`,
     );
 
     return result.rows;
@@ -136,8 +133,8 @@ class User {
     );
 
     const user = userRes.rows[0];
-
     if (!user) throw new NotFoundError(`No user: ${username}`);
+
 
     return user;
   }

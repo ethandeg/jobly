@@ -162,7 +162,7 @@ describe("GET /users", function () {
   });
 });
 
-/************************************** GET /users/:username */
+// /************************************** GET /users/:username */
 
 describe("GET /users/:username", function () {
   test("works for users", async function () {
@@ -194,7 +194,7 @@ describe("GET /users/:username", function () {
   });
 });
 
-/************************************** PATCH /users/:username */
+// /************************************** PATCH /users/:username */
 
 describe("PATCH /users/:username", () => {
   test("works for users", async function () {
@@ -265,7 +265,7 @@ describe("PATCH /users/:username", () => {
   });
 });
 
-/************************************** DELETE /users/:username */
+// /************************************** DELETE /users/:username */
 
 describe("DELETE /users/:username", function () {
   test("works for users", async function () {
