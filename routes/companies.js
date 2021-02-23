@@ -50,7 +50,7 @@ router.post("/", ensureAdmin, async function (req, res, next) {
  * Authorization required: none
  */
 
-router.get("/", async function (req, res, next) {
+router.get("/",  async function (req, res, next) {
   try {
     //if there are no queries passed in the string simply find all companies
       const companies = await Company.findAll(req.query);
@@ -108,7 +108,7 @@ router.patch("/:handle", ensureAdmin, async function (req, res, next) {
  * Authorization: login
  */
 
-router.delete("/:handle", ensureAdmin, async function (req, res, next) {
+router.delete("/:handle", async function (req, res, next) {
   try {
     await Company.remove(req.params.handle);
     return res.json({ deleted: req.params.handle });
